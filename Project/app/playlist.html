@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Playlist Manager</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form, .controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input {
+      padding: 8px;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .song {
+      background-color: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .song span {
+      display: inline-block;
+      min-width: 120px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎵 Playlist Manager</h1>
+
+  <form id="songForm">
+    <input type="text" id="title" placeholder="Title" required>
+    <input type="text" id="artist" placeholder="Artist" required>
+    <input type="number" id="duration" placeholder="Duration (s)" required>
+    <button type="submit">Add Song</button>
+  </form>
+
+  <div class="controls">
+    <button onclick="sortByTitle()">Sort by Title</button>
+    <button onclick="sortByPopularity()">Sort by Popularity</button>
+  </div>
+
+  <div id="playlist"></div>
+
+  <script>
+    let songs = [];
+
+    function addSong(title, artist, duration) {
+      songs.push([title, artist, parseInt(duration), 0]);
+      displayPlaylist();
+    }
+
+    function deleteSong(title) {
+      songs = songs.filter(song => song[0] !== title);
+      displayPlaylist();
+    }
+
+    function playSong(title) {
+      for (let song of songs) {
+        if (song[0] === title) {
+          song[3] += 1;
+          alert(`Now Playing: ${song[0]} by ${song[1]}`);
+        }
+      }
+      displayPlaylist();
+    }
+
+    function displayPlaylist() {
+      const playlist = document.getElementById('playlist');
+      playlist.innerHTML = '';
+      for (let song of songs) {
+        const songDiv = document.createElement('div');
+        songDiv.className = 'song';
+        songDiv.innerHTML = `
+          <span><strong>${song[0]}</strong></span>
+          <span>${song[1]}</span>
+          <span>${song[2]}s</span>
+          <span>Played: ${song[3]} times</span>
+          <button onclick="playSong('${song[0]}')">Play</button>
+          <button onclick="deleteSong('${song[0]}')">Delete</button>
+        `;
+        playlist.appendChild(songDiv);
+      }
+    }
+
+    function sortByTitle() {
+      // Bubble sort by title
+      let n = songs.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          if (songs[j][0] > songs[j + 1][0]) {
+            [songs[j], songs[j + 1]] = [songs[j + 1], songs[j]];
+          }
+        }
+      }
+      displayPlaylist();
+    }
+
+    function sortByPopularity() {
+      songs = mergeSortByPopularity(songs);
+      displayPlaylist();
+    }
+
+    function mergeSortByPopularity(list) {
+      if (list.length <= 1) return list;
+      const mid = Math.floor(list.length / 2);
+      const left = mergeSortByPopularity(list.slice(0, mid));
+      const right = mergeSortByPopularity(list.slice(mid));
+      return merge(left, right);
+    }
+
+    function merge(left, right) {
+      const result = [];
+      while (left.length && right.length) {
+        if (left[0][3] > right[0][3]) {
+          result.push(left.shift());
+        } else {
+          result.push(right.shift());
+        }
+      }
+      return result.concat(left, right);
+    }
+
+    document.getElementById('songForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = document.getElementById('title').value;
+      const artist = document.getElementById('artist').value;
+      const duration = document.getElementById('duration').value;
+      addSong(title, artist, duration);
+      this.reset();
+    });
+
+    // Initial Songs
+    addSong("Believer", "Imagine Dragons", 204);
+    addSong("Perfect", "Ed Sheeran", 263);
+    addSong("Blinding Lights", "The Weeknd", 200);
+    playSong("Perfect");
+    playSong("Believer");
+    playSong("Believer");
+
+  </script>
+</body>
+</html>
